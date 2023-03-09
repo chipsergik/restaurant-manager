@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace RestaurantManager.API.Controllers;
+namespace RestaurantManager.API.Controllers.Dto;
 
 public class ClientsGroupArriveRequest
 {

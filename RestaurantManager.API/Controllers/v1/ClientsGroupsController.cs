@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using RestaurantManager.API.Controllers.Dto;
 using RestaurantManager.API.Exceptions;
 using RestaurantManager.API.Interfaces;
 using RestaurantManager.API.Models;
