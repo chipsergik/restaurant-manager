@@ -19,6 +19,8 @@ public class ClientsGroupsController : ControllerBase
     }
 
     [HttpGet(Name = "{groupId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public ActionResult<Table> Get(Guid groupId)
     {
         try
@@ -39,12 +41,18 @@ public class ClientsGroupsController : ControllerBase
     }
 
     [HttpPost(Name = "{size}")]
-    [ProducesResponseType(201)]
-    public async Task<ActionResult<Guid>> OnArrive(int size)
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<Guid>> OnArrive(ClientsGroupArriveRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        
         try
         {
-            var clientsGroupId = _restaurantManager.OnArrive(size);
+            var clientsGroupId = _restaurantManager.OnArrive(request.Size);
 
             await _taskQueue.QueueBackgroundWorkItemAsync(_restaurantManager.ProcessQueue);
 
@@ -57,6 +65,8 @@ public class ClientsGroupsController : ControllerBase
     }
 
     [HttpDelete(Name = "{groupId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> OnLeave(Guid groupId)
     {
         try
