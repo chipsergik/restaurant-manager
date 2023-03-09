@@ -1,17 +1,18 @@
 ﻿using System.Threading.Channels;
+using Microsoft.Extensions.Options;
 
 public class BackgroundTaskQueue : IBackgroundTaskQueue
 {
     private readonly Channel<Action> _queue;
 
-    public BackgroundTaskQueue(int capacity)
+    public BackgroundTaskQueue(IOptions<BackgroundTaskQueueOptions> settings)
     {
         // Capacity should be set based on the expected application load and
         // number of concurrent threads accessing the queue.            
         // BoundedChannelFullMode.Wait will cause calls to WriteAsync() to return a task,
         // which completes only when space became available. This leads to backpressure,
         // in case too many publishers/calls start accumulating.
-        var options = new BoundedChannelOptions(capacity)
+        var options = new BoundedChannelOptions(settings.Value.Capacity)
         {
             FullMode = BoundedChannelFullMode.Wait
         };

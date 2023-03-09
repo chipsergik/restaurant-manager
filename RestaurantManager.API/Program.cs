@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.Extensions.Options;
 using RestaurantManager.API.Configuration;
 using RestaurantManager.API.Filters;
 using RestaurantManager.API.Interfaces;
@@ -13,7 +14,9 @@ using Serilog;
 var configuration = new ConfigurationBuilder()
                    .SetBasePath(Directory.GetCurrentDirectory())
                    .AddJsonFile("appsettings.json")
-                   .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", true)
+                   .AddJsonFile(
+                        $"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json",
+                        true)
                    .Build();
 
 Log.Logger = new LoggerConfiguration()
@@ -50,26 +53,44 @@ try
 
     builder.Services.AddSingleton<IClientsGroupsRepository, ClientsGroupsInMemoryRepository>();
 
-    var tables = builder.Configuration
-                        .GetSection(TablesOptions.Tables)
-                        .Get<int[]>().Select(size => new Table(size))
-                        .ToList();
+    builder.Services.AddOptions<TablesOptions>()
+           .Bind(builder.Configuration.GetSection(TablesOptions.Name))
+           .Validate(config =>
+                {
+                    if (config == null)
+                    {
+                        return false;
+                    }
+
+                    var orderedDistinctTableSizes = config.Sizes.Distinct().OrderBy(size => size);
+                    for (var expectedSize = 2; expectedSize <= 6; expectedSize++)
+                    {
+                        if (!orderedDistinctTableSizes.Any(size => size == expectedSize))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                },
+                "Tables should contain every size in range from 2 to 6")
+           .ValidateOnStart();
 
     builder.Services.AddSingleton<ITablesRepository, TablesInMemoryRepository>(
         serviceProvider => new TablesInMemoryRepository(
-            tables: tables
+            tables: serviceProvider.GetRequiredService<IOptions<TablesOptions>>().Value.Tables.ToList()
         ));
 
     builder.Services.AddHostedService<QueuedHostedService>();
 
     builder.Services.AddSingleton<IRestaurantManager, RestaurantManagerService>();
 
-    builder.Services.AddSingleton<IBackgroundTaskQueue>(context =>
-    {
-        if (!int.TryParse(builder.Configuration["QueueCapacity"], out var queueCapacity))
-            queueCapacity = 10;
-        return new BackgroundTaskQueue(queueCapacity);
-    });
+    builder.Services.AddOptions<BackgroundTaskQueueOptions>()
+           .Bind(builder.Configuration.GetSection(BackgroundTaskQueueOptions.Name))
+           .ValidateDataAnnotations()
+           .ValidateOnStart();
+    
+    builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();

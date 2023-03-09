@@ -40,7 +40,7 @@ public class RestaurantManagerService : IRestaurantManager
         var groupId = _clientsGroupsRepository.Create(group);
 
         _clientsGroupsQueue.Add(group);
-        _logger.LogDebug(LoggingEvents.RestaurantManagerOnArrive, "Group {Group} added to queue", group);
+        _logger.LogInformation(LoggingEvents.RestaurantManagerOnArrive, "Group {Group} added to queue", group);
 
         return groupId;
     }
@@ -62,7 +62,7 @@ public class RestaurantManagerService : IRestaurantManager
             {
                 _clientsGroupsQueue.Remove(group);
                 _clientsGroupsRepository.Remove(group.Id);
-                _logger.LogDebug(LoggingEvents.RestaurantManagerOnLeave, "Group {Group} removed from queue", group);
+                _logger.LogInformation(LoggingEvents.RestaurantManagerOnLeave, "Group {Group} removed from queue", group);
 
                 return;
             }
@@ -86,7 +86,7 @@ public class RestaurantManagerService : IRestaurantManager
 
     public void ProcessQueue()
     {
-        _logger.LogDebug(LoggingEvents.RestaurantManagerProcessQueueStarted,
+        _logger.LogInformation(LoggingEvents.RestaurantManagerProcessQueueStarted,
             "ClientsGroups processing has started. Queue length: {Length}", _clientsGroupsQueue.Count());
 
         foreach (var group in _clientsGroupsQueue.ToList())
@@ -98,7 +98,7 @@ public class RestaurantManagerService : IRestaurantManager
 
             if (matchingTable == null) continue;
 
-            _logger.LogDebug(LoggingEvents.RestaurantManagerProcessQueueTableFound,
+            _logger.LogInformation(LoggingEvents.RestaurantManagerProcessQueueTableFound,
                 "Table with size: {TableSize} found for {Group}", matchingTable.Size, group);
             if (matchingTable.IsEmpty())
             {
@@ -110,7 +110,7 @@ public class RestaurantManagerService : IRestaurantManager
             _clientsGroupsQueue.Remove(group);
         }
 
-        _logger.LogDebug(LoggingEvents.RestaurantManagerProcessQueueFinished, "Queue processing has finished");
+        _logger.LogInformation(LoggingEvents.RestaurantManagerProcessQueueFinished, "Queue processing has finished");
 
         Table? FindExactlyMatchingEmptyTable(int groupSize) =>
             _tablesRepository.GetEmptyTablesForGroup(groupSize)?.FirstOrDefault();
