@@ -91,7 +91,8 @@ public class RestaurantManagerService : IRestaurantManager
 
     public void ProcessQueue()
     {
-        _logger.LogDebug(LoggingEvents.RestaurantManagerProcessQueueStarted, "Queue processing has started");
+        _logger.LogDebug(LoggingEvents.RestaurantManagerProcessQueueStarted,
+            "ClientsGroups processing has started. Queue length: {Length}", _clientsGroupsQueue.Count());
 
         foreach (var group in _clientsGroupsQueue.ToList())
         {
@@ -102,6 +103,8 @@ public class RestaurantManagerService : IRestaurantManager
 
             if (matchingTable == null) continue;
 
+            _logger.LogDebug(LoggingEvents.RestaurantManagerProcessQueueTableFound,
+                "Table with size: {TableSize} found for {Group}", matchingTable.Size, group);
             if (matchingTable.IsEmpty())
             {
                 _emptyTables[matchingTable.Size].Remove(matchingTable);

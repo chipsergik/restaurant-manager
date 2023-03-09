@@ -12,6 +12,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IClientsGroupsRepository, ClientsGroupsInMemoryRepository>();
+builder.Services.AddHostedService<QueuedHostedService>();
 
 var tables = builder.Configuration
                     .GetSection(TablesOptions.Tables)
@@ -25,6 +26,13 @@ builder.Services.AddSingleton<IRestaurantManager, RestaurantManagerService>(
         logger: serviceProvider.GetRequiredService<ILogger<RestaurantManagerService>>(),
         clientsGroupsQueue: Enumerable.Empty<ClientsGroup>()
     ));
+
+builder.Services.AddSingleton<IBackgroundTaskQueue>(context =>
+{
+    if (!int.TryParse(builder.Configuration["QueueCapacity"], out var queueCapacity))
+        queueCapacity = 10;
+    return new BackgroundTaskQueue(queueCapacity);
+});
 
 var app = builder.Build();
 

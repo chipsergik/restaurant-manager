@@ -10,22 +10,29 @@ namespace RestaurantManager.API.Controllers;
 public class ClientsGroupsController : ControllerBase
 {
     private readonly IRestaurantManager _restaurantManager;
+    private readonly IBackgroundTaskQueue _taskQueue;
 
-    public ClientsGroupsController(IRestaurantManager restaurantManager)
+    public ClientsGroupsController(IRestaurantManager restaurantManager, IBackgroundTaskQueue taskQueue)
     {
         _restaurantManager = restaurantManager ?? throw new ArgumentNullException();
+        _taskQueue = taskQueue ?? throw new ArgumentNullException();
     }
 
     [HttpGet(Name = "{groupId}")]
-    public async Task<ActionResult<Table>> Get(Guid groupId)
+    public ActionResult<Table> Get(Guid groupId)
     {
         try
         {
             var table = _restaurantManager.Lookup(groupId);
 
+            if (table == null)
+            {
+                return NoContent();
+            }
+
             return table;
         }
-        catch (ClientsGroupNotFoundException _)
+        catch (ClientsGroupNotFoundException)
         {
             return NotFound();
         }
@@ -39,28 +46,28 @@ public class ClientsGroupsController : ControllerBase
         {
             var clientsGroupId = _restaurantManager.OnArrive(size);
 
-            Task.Run(() => _restaurantManager.ProcessQueue());
+            await _taskQueue.QueueBackgroundWorkItemAsync(_restaurantManager.ProcessQueue);
 
             return clientsGroupId;
         }
-        catch (InvalidClientsGroupSizeException _)
+        catch (InvalidClientsGroupSizeException)
         {
             return UnprocessableEntity();
         }
     }
 
     [HttpDelete(Name = "{groupId}")]
-    public ActionResult OnLeave(Guid groupId)
+    public async Task<ActionResult> OnLeave(Guid groupId)
     {
         try
         {
             _restaurantManager.OnLeave(groupId);
 
-            Task.Run(() => _restaurantManager.ProcessQueue());
+            await _taskQueue.QueueBackgroundWorkItemAsync(_restaurantManager.ProcessQueue);
 
             return Ok();
         }
-        catch (ClientsGroupNotFoundException _)
+        catch (ClientsGroupNotFoundException)
         {
             return NotFound();
         }
