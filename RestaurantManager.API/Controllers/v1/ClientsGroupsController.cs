@@ -3,10 +3,11 @@ using RestaurantManager.API.Exceptions;
 using RestaurantManager.API.Interfaces;
 using RestaurantManager.API.Models;
 
-namespace RestaurantManager.API.Controllers;
+namespace RestaurantManager.API.Controllers.v1;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
+[ApiVersion("1.0")]
 public class ClientsGroupsController : ControllerBase
 {
     private readonly IRestaurantManager _restaurantManager;
@@ -49,7 +50,7 @@ public class ClientsGroupsController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-        
+
         try
         {
             var clientsGroupId = _restaurantManager.OnArrive(request.Size);
