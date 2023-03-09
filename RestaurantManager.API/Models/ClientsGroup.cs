@@ -36,4 +36,9 @@ public class ClientsGroup
         table.RemoveClientsGroup(Size);
         Table = null;
     }
+
+    public override string ToString()
+    {
+        return $"Id: {Id}; Size: {Size}";
+    }
 }

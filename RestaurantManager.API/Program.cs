@@ -22,10 +22,13 @@ builder.Services.AddSingleton<IRestaurantManager, RestaurantManagerService>(
     serviceProvider => new RestaurantManagerService(
         tables: tables,
         clientsGroupsRepository: serviceProvider.GetRequiredService<IClientsGroupsRepository>(),
+        logger: serviceProvider.GetRequiredService<ILogger<RestaurantManagerService>>(),
         clientsGroupsQueue: Enumerable.Empty<ClientsGroup>()
     ));
 
 var app = builder.Build();
+
+app.UseHttpLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -33,8 +36,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseHttpsRedirection();
 
 app.MapControllers();
 

@@ -1,18 +1,23 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using RestaurantManager.API;
 using RestaurantManager.API.Interfaces;
 using RestaurantManager.API.Models;
 using RestaurantManager.API.Persistence;
+using RestaurantManager.API.Services;
 
 namespace RestaurantManager.Tests;
 
 public class RestaurantManagerTests
 {
     private IClientsGroupsRepository _clientsGroupsRepository;
+    private ILogger<RestaurantManagerService> _logger;
 
     [SetUp]
     public void Init()
     {
         _clientsGroupsRepository = new ClientsGroupsInMemoryRepository();
+        _logger = new Logger<RestaurantManagerService>(new NullLoggerFactory());
     }
 
     private IRestaurantManager GetRestaurantManagerWithEmptyTables(IEnumerable<ClientsGroup> clientsGroupsQueue)
@@ -26,13 +31,21 @@ public class RestaurantManagerTests
             new(size: 6)
         };
 
-        return new API.Services.RestaurantManagerService(tables, _clientsGroupsRepository, clientsGroupsQueue);
+        return new API.Services.RestaurantManagerService(
+            tables,
+            _clientsGroupsRepository,
+            new NullLogger<RestaurantManagerService>(),
+            clientsGroupsQueue);
     }
 
     private IRestaurantManager GetRestaurantManagerWithSetUpTables(IReadOnlyCollection<Table> tables,
         IEnumerable<ClientsGroup> clientsGroupsQueue)
     {
-        return new API.Services.RestaurantManagerService(tables, _clientsGroupsRepository, clientsGroupsQueue);
+        return new API.Services.RestaurantManagerService(
+            tables,
+            _clientsGroupsRepository,
+            _logger,
+            clientsGroupsQueue);
     }
 
     private ClientsGroup CreateClientsGroup(int size)
@@ -253,11 +266,8 @@ public class RestaurantManagerTests
         restaurantManager.OnLeave(clientsGroup.Id);
 
         var actualTable = restaurantManager.Lookup(clientsGroup.Id);
-        
-        Assert.Multiple(() =>
-        {
-            Assert.That(actualTable, Is.Null);
-        });
+
+        Assert.Multiple(() => { Assert.That(actualTable, Is.Null); });
     }
 
     [Test]
