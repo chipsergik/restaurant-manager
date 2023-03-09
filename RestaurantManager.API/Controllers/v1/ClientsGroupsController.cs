@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantManager.API.Exceptions;
 using RestaurantManager.API.Interfaces;
@@ -22,7 +23,7 @@ public class ClientsGroupsController : ControllerBase
     [HttpGet(Name = "{groupId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public ActionResult<Table> Get(Guid groupId)
+    public ActionResult<Table> Get([Required]Guid groupId)
     {
         try
         {

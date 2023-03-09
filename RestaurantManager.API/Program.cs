@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using RestaurantManager.API.Configuration;
+using RestaurantManager.API.Filters;
 using RestaurantManager.API.Interfaces;
 using RestaurantManager.API.Models;
 using RestaurantManager.API.Persistence;
@@ -11,7 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<GlobalExceptionFilter>();
+});
 
 builder.Services.AddApiVersioning(opt =>
 {
@@ -58,11 +62,14 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
 
+
+
 var app = builder.Build();
 
 app.UseHttpLogging();
 
 var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
