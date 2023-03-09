@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -18,7 +17,7 @@ internal class GlobalExceptionFilter : ExceptionFilterAttribute
     {
         var result = new StatusCodeResult((int)HttpStatusCode.InternalServerError);
 
-        _logger.LogError("Unhandled exception occurred while executing request: {ex}", context.Exception);
+        _logger.LogError("Unhandled exception occurred while executing request: {Exception}", context.Exception);
 
         // Set the result
         context.Result = result;

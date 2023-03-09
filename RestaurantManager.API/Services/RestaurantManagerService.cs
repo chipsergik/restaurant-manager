@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using RestaurantManager.API.Exceptions;
+﻿using RestaurantManager.API.Exceptions;
 using RestaurantManager.API.Interfaces;
 using RestaurantManager.API.Models;
 using RestaurantManager.API.Utils;

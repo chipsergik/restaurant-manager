@@ -5,7 +5,6 @@ using Microsoft.Extensions.Options;
 using RestaurantManager.API.Configuration;
 using RestaurantManager.API.Filters;
 using RestaurantManager.API.Interfaces;
-using RestaurantManager.API.Models;
 using RestaurantManager.API.Persistence;
 using RestaurantManager.API.Services;
 using Serilog;

@@ -47,15 +47,15 @@ public class ConfigureSwaggerOptions
     /// <param name="description"></param>
     /// <returns>Information about the API</returns>
     private OpenApiInfo CreateVersionInfo(
-        ApiVersionDescription desc)
+        ApiVersionDescription description)
     {
         var info = new OpenApiInfo()
         {
             Title = ".NET Core (.NET 6) Web API",
-            Version = desc.ApiVersion.ToString()
+            Version = description.ApiVersion.ToString()
         };
 
-        if (desc.IsDeprecated)
+        if (description.IsDeprecated)
         {
             info.Description += " This API version has been deprecated. Please use one of the new APIs available from the explorer.";
         }

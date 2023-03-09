@@ -1,5 +1,7 @@
 ﻿using RestaurantManager.API.Models;
 
+namespace RestaurantManager.API.Configuration;
+
 public class TablesOptions
 {
     public const string Name = "Tables";

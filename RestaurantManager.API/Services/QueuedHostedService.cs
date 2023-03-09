@@ -1,4 +1,6 @@
-﻿namespace RestaurantManager.API.Services;
+﻿using RestaurantManager.API.Interfaces;
+
+namespace RestaurantManager.API.Services;
 
 public class QueuedHostedService : BackgroundService
 {

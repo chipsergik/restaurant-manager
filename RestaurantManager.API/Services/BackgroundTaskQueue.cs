@@ -1,5 +1,9 @@
 ﻿using System.Threading.Channels;
 using Microsoft.Extensions.Options;
+using RestaurantManager.API.Configuration;
+using RestaurantManager.API.Interfaces;
+
+namespace RestaurantManager.API.Services;
 
 public class BackgroundTaskQueue : IBackgroundTaskQueue
 {

@@ -1,4 +1,6 @@
-﻿public interface IBackgroundTaskQueue
+﻿namespace RestaurantManager.API.Interfaces;
+
+public interface IBackgroundTaskQueue
 {
     ValueTask QueueBackgroundWorkItemAsync(Action workItem);
 
