@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using RestaurantManager.API;
 using RestaurantManager.API.Interfaces;
 using RestaurantManager.API.Models;
 using RestaurantManager.API.Persistence;
@@ -31,8 +30,10 @@ public class RestaurantManagerTests
             new(size: 6)
         };
 
-        return new API.Services.RestaurantManagerService(
-            tables,
+        var tablesRepository = new TablesInMemoryRepository(tables);
+
+        return new RestaurantManagerService(
+            tablesRepository,
             _clientsGroupsRepository,
             new NullLogger<RestaurantManagerService>(),
             clientsGroupsQueue);
@@ -41,8 +42,10 @@ public class RestaurantManagerTests
     private IRestaurantManager GetRestaurantManagerWithSetUpTables(IReadOnlyCollection<Table> tables,
         IEnumerable<ClientsGroup> clientsGroupsQueue)
     {
-        return new API.Services.RestaurantManagerService(
-            tables,
+        var tablesRepository = new TablesInMemoryRepository(tables);
+
+        return new RestaurantManagerService(
+            tablesRepository,
             _clientsGroupsRepository,
             _logger,
             clientsGroupsQueue);
@@ -173,7 +176,7 @@ public class RestaurantManagerTests
 
         Assert.That(actualTable, Is.EqualTo(expectedTable));
     }
-    
+
     [Test]
     public void ProcessQueue_WhenAllTablesAreEmptyAndClientsGroupsInQueue_clientsGroupsQueueShouldBeProcessedInOrder()
     {
@@ -219,7 +222,7 @@ public class RestaurantManagerTests
             }
         );
     }
-    
+
     [Test]
     public void ProcessQueue_WhenOnlyPartiallyEmptyTableAvailable_ClientsGroupShouldChoosePartiallyEmptyTable()
     {
@@ -235,7 +238,7 @@ public class RestaurantManagerTests
             {
                 partiallyEmptyTable,
             },
-            clientsGroupsQueue: new []
+            clientsGroupsQueue: new[]
             {
                 clientsGroupInQueue
             }
@@ -248,7 +251,7 @@ public class RestaurantManagerTests
         Assert.That(actualTableSize, Is.EqualTo(expectedTableSize));
     }
 
-    
+
     [Test]
     public void ProcessQueue_WhenPartiallyEmptyAndEmptyTablesAvailable_ClientsGroupShouldChooseEmptyTable()
     {
@@ -258,7 +261,7 @@ public class RestaurantManagerTests
 
         var clientsGroupOnTable = CreateClientsGroup(2);
         clientsGroupOnTable.AssignTable(partiallyEmptyTable);
-        
+
         var arrivedClientsGroup = CreateClientsGroup(2);
 
         var restaurantManager = GetRestaurantManagerWithSetUpTables(
@@ -267,7 +270,7 @@ public class RestaurantManagerTests
                 partiallyEmptyTable,
                 new Table(emptyTableSize),
             },
-            clientsGroupsQueue: new []
+            clientsGroupsQueue: new[]
             {
                 arrivedClientsGroup
             }
@@ -280,7 +283,7 @@ public class RestaurantManagerTests
 
         Assert.That(actualTableSize, Is.EqualTo(exceptedTableSize));
     }
-    
+
     [Test]
     public void ProcessQueue_WhenGroupInQueueCantBeProcessedAndArrivedGroupCanBeProcessed_ShouldProcessArrivedGroup()
     {

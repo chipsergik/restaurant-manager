@@ -1,4 +1,5 @@
-﻿using RestaurantManager.API.Exceptions;
+﻿using System.Diagnostics;
+using RestaurantManager.API.Exceptions;
 using RestaurantManager.API.Interfaces;
 using RestaurantManager.API.Models;
 using RestaurantManager.API.Utils;
@@ -7,35 +8,29 @@ namespace RestaurantManager.API.Services;
 
 public class RestaurantManagerService : IRestaurantManager
 {
-    private readonly IClientsGroupsRepository _clientsGroupsRepository;
     private readonly ILogger<RestaurantManagerService> _logger;
+    private readonly IClientsGroupsRepository _clientsGroupsRepository;
+    private readonly ITablesRepository _tablesRepository;
 
-    private readonly IOrderedEnumerable<Table> _allTables;
-    private readonly IDictionary<int, IList<Table>> _emptyTables;
+
     private readonly IList<ClientsGroup> _clientsGroupsQueue;
 
     private readonly object _lockObject = new();
 
     public RestaurantManagerService(
-        IReadOnlyCollection<Table> tables,
+        ITablesRepository tablesRepository,
         IClientsGroupsRepository clientsGroupsRepository,
         ILogger<RestaurantManagerService> logger,
         IEnumerable<ClientsGroup> clientsGroupsQueue
     )
     {
+        _tablesRepository = tablesRepository ?? throw new ArgumentNullException(nameof(tablesRepository));
         _clientsGroupsRepository =
             clientsGroupsRepository ?? throw new ArgumentNullException(nameof(clientsGroupsRepository));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         _clientsGroupsQueue =
             clientsGroupsQueue.ToList() ?? throw new ArgumentNullException(nameof(clientsGroupsQueue));
-        _allTables = tables.OrderBy(table => table.Size) ?? throw new ArgumentNullException(nameof(tables));
-        _emptyTables = new Dictionary<int, IList<Table>>(
-            Enumerable.Range(2, 5).Select(size =>
-                new KeyValuePair<int, IList<Table>>(
-                    size,
-                    _allTables.Where(table => table.Size == size && table.IsEmpty()).ToList()
-                )));
     }
 
     public Guid OnArrive(int groupSize)
@@ -77,7 +72,7 @@ public class RestaurantManagerService : IRestaurantManager
 
             if (table.IsEmpty())
             {
-                _emptyTables[table.Size].Add(table);
+                _tablesRepository.AddEmptyTable(table);
             }
         }
     }
@@ -107,7 +102,7 @@ public class RestaurantManagerService : IRestaurantManager
                 "Table with size: {TableSize} found for {Group}", matchingTable.Size, group);
             if (matchingTable.IsEmpty())
             {
-                _emptyTables[matchingTable.Size].Remove(matchingTable);
+                _tablesRepository.RemoveEmptyTable(matchingTable);
             }
 
             group.AssignTable(matchingTable);
@@ -118,16 +113,15 @@ public class RestaurantManagerService : IRestaurantManager
         _logger.LogDebug(LoggingEvents.RestaurantManagerProcessQueueFinished, "Queue processing has finished");
 
         Table? FindExactlyMatchingEmptyTable(int groupSize) =>
-            _emptyTables.ContainsKey(groupSize)
-                ? _emptyTables[groupSize].FirstOrDefault()
-                : null;
+            _tablesRepository.GetEmptyTablesForGroup(groupSize)?.FirstOrDefault();
+
 
         Table? FindMinimalSizeEmptySuitableTable(int groupSize) =>
-            _emptyTables.FirstOrDefault(tablesSet =>
-                             tablesSet.Key > groupSize && tablesSet.Value.Any())
-                        .Value?.FirstOrDefault();
+            _tablesRepository.GetGroupedEmptyTables().FirstOrDefault(tablesSet =>
+                                  tablesSet.Key > groupSize && tablesSet.Value.Any())
+                             .Value?.FirstOrDefault();
 
         Table? FindNonEmptySuitableTable(int groupSize) =>
-            _allTables.FirstOrDefault(table => table.IsEnoughRoom(groupSize));
+            _tablesRepository.GetAll().FirstOrDefault(table => table.IsEnoughRoom(groupSize));
     }
 }

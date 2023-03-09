@@ -12,14 +12,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers(options =>
-{
-    options.Filters.Add<GlobalExceptionFilter>();
-});
+builder.Services.AddControllers(options => { options.Filters.Add<GlobalExceptionFilter>(); });
 
 builder.Services.AddApiVersioning(opt =>
 {
-    opt.DefaultApiVersion = new ApiVersion(1,0);
+    opt.DefaultApiVersion = new ApiVersion(1, 0);
     opt.AssumeDefaultVersionWhenUnspecified = true;
     opt.ReportApiVersions = true;
     opt.ApiVersionReader = ApiVersionReader.Combine(new UrlSegmentApiVersionReader(),
@@ -35,20 +32,20 @@ builder.Services.AddVersionedApiExplorer(setup =>
 });
 
 builder.Services.AddSingleton<IClientsGroupsRepository, ClientsGroupsInMemoryRepository>();
-builder.Services.AddHostedService<QueuedHostedService>();
 
 var tables = builder.Configuration
                     .GetSection(TablesOptions.Tables)
                     .Get<int[]>().Select(size => new Table(size))
                     .ToList();
 
-builder.Services.AddSingleton<IRestaurantManager, RestaurantManagerService>(
-    serviceProvider => new RestaurantManagerService(
-        tables: tables,
-        clientsGroupsRepository: serviceProvider.GetRequiredService<IClientsGroupsRepository>(),
-        logger: serviceProvider.GetRequiredService<ILogger<RestaurantManagerService>>(),
-        clientsGroupsQueue: Enumerable.Empty<ClientsGroup>()
+builder.Services.AddSingleton<ITablesRepository, TablesInMemoryRepository>(
+    serviceProvider => new TablesInMemoryRepository(
+        tables: tables
     ));
+
+builder.Services.AddHostedService<QueuedHostedService>();
+
+builder.Services.AddSingleton<IRestaurantManager, RestaurantManagerService>();
 
 builder.Services.AddSingleton<IBackgroundTaskQueue>(context =>
 {
