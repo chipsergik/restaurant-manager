@@ -17,7 +17,7 @@ public class ClientsGroupsController : ControllerBase
     }
 
     [HttpGet(Name = "{groupId}")]
-    public ActionResult<Table> Get(Guid groupId)
+    public async Task<ActionResult<Table>> Get(Guid groupId)
     {
         try
         {
@@ -33,11 +33,13 @@ public class ClientsGroupsController : ControllerBase
 
     [HttpPost(Name = "{size}")]
     [ProducesResponseType(201)]
-    public ActionResult<Guid> OnArrive(int size)
+    public async Task<ActionResult<Guid>> OnArrive(int size)
     {
         try
         {
             var clientsGroupId = _restaurantManager.OnArrive(size);
+
+            Task.Run(() => _restaurantManager.ProcessQueue());
 
             return clientsGroupId;
         }
@@ -53,6 +55,8 @@ public class ClientsGroupsController : ControllerBase
         try
         {
             _restaurantManager.OnLeave(groupId);
+
+            Task.Run(() => _restaurantManager.ProcessQueue());
 
             return Ok();
         }

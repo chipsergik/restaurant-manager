@@ -47,11 +47,6 @@ public class RestaurantManagerService : IRestaurantManager
         _clientsGroupsQueue.Add(group);
         _logger.LogDebug(LoggingEvents.RestaurantManagerOnArrive, "Group {Group} added to queue", group);
 
-        lock (_lockObject)
-        {
-            ProcessQueue();
-        }
-
         return groupId;
     }
 
@@ -84,8 +79,6 @@ public class RestaurantManagerService : IRestaurantManager
             {
                 _emptyTables[table.Size].Add(table);
             }
-
-            ProcessQueue();
         }
     }
 
@@ -96,10 +89,10 @@ public class RestaurantManagerService : IRestaurantManager
         return group?.Table;
     }
 
-    private void ProcessQueue()
+    public void ProcessQueue()
     {
         _logger.LogDebug(LoggingEvents.RestaurantManagerProcessQueueStarted, "Queue processing has started");
-        
+
         foreach (var group in _clientsGroupsQueue.ToList())
         {
             var matchingTable =
@@ -118,7 +111,7 @@ public class RestaurantManagerService : IRestaurantManager
 
             _clientsGroupsQueue.Remove(group);
         }
-        
+
         _logger.LogDebug(LoggingEvents.RestaurantManagerProcessQueueFinished, "Queue processing has finished");
 
         Table? FindExactlyMatchingEmptyTable(int groupSize) =>

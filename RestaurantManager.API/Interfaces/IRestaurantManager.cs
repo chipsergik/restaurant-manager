@@ -26,4 +26,9 @@ public interface IRestaurantManager
     /// <param name="groupId">Identity of clients group</param>
     /// <returns></returns>
     public Table? Lookup(Guid groupId);
+
+    /// <summary>
+    /// Starts clients group queue processing 
+    /// </summary>
+    public void ProcessQueue();
 }
