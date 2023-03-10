@@ -11,7 +11,6 @@ public class RestaurantManagerService : IRestaurantManager
     private readonly IClientsGroupsRepository _clientsGroupsRepository;
     private readonly ITablesRepository _tablesRepository;
 
-
     private readonly IList<ClientsGroup> _clientsGroupsQueue;
 
     private readonly object _lockObject = new();
@@ -95,7 +94,10 @@ public class RestaurantManagerService : IRestaurantManager
                 FindMinimalSizeEmptySuitableTable(group.Size) ??
                 FindNonEmptySuitableTable(group.Size);
 
-            if (matchingTable == null) continue;
+            if (matchingTable == null)
+            {
+                continue;
+            }
 
             _logger.LogInformation(LoggingEvents.RestaurantManagerProcessQueueTableFound,
                 "Table with size: {TableSize} found for {Group}", matchingTable.Size, group);
