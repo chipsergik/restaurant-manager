@@ -1,4 +1,6 @@
-﻿namespace RestaurantManager.API.Models;
+﻿using RestaurantManager.API.Exceptions;
+
+namespace RestaurantManager.API.Models;
 
 public class Table
 {
@@ -9,6 +11,20 @@ public class Table
     {
         if (size is < 2 or > 6) throw new ArgumentOutOfRangeException(nameof(size));
         _emptyPlaces = Size = size;
+    }
+
+    private int EmptyPlaces
+    {
+        get => _emptyPlaces;
+        set
+        {
+            if (value < 0 || value > Size)
+            {
+                throw new TableOverflowException();
+            }
+
+            _emptyPlaces = value;
+        }
     }
 
     /// <summary>
@@ -29,7 +45,7 @@ public class Table
     /// </summary>
     public void AddClientsGroup(int groupSize)
     {
-        _emptyPlaces -= groupSize;
+        EmptyPlaces -= groupSize;
     }
 
     /// <summary>
@@ -37,6 +53,6 @@ public class Table
     /// </summary>
     public void RemoveClientsGroup(int groupSize)
     {
-        _emptyPlaces += groupSize;
+        EmptyPlaces += groupSize;
     }
 }
